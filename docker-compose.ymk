@@ -1,0 +1,91 @@
+version: "3.8"
+
+services:
+#MariaDB Container
+  mariadb:
+    image: mariadb:10.7
+    container_name: mariadb
+    hostname: mariadb
+    restart: always
+    environment:
+      - MARIADB_ROOT_PASSWORD=e5SISR2023
+    volumes: 
+      - db:/var/lib/mysql
+     networks:
+      - e5rayan
+
+#WordPress container 80
+  wordpress:
+    image: wordpress
+    container_name: wordpress
+    restart: always
+    ports:
+      - "80:80"
+    environment:
+      WORDPRESS_DB_HOST: mariadb
+      WORDPRESS_DB_USER: wp_user
+      WORDPRESS_DB_PASSWORD: wp
+      WORDPRESS_DB_NAME: wordpress
+    volumes:
+      - wordpress:/var/www/html/
+     networks:
+      - e5rayan
+
+#PHPMyAdmin container 55001
+  phpmyadmin:
+    image: phpmyadmin
+    restart: always
+    container_name: phpmyadmin
+    ports:
+      - "55001:80"
+    environment:
+      - PMA_HOST=mariadb
+     networks:
+      - e5rayan
+
+#GLPI Container 55002
+  glpi:
+    image: diouxx/glpi
+    container_name : glpi
+    hostname: glpi
+    restart: always
+    environment:
+      - VERSION_GLPI=10.0.6
+    ports:
+      - "55002:80"
+      - "62354:62354"
+    volumes:
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+      - glpi:/var/www/html/glpi
+     networks:
+      - e5rayan
+
+#Portainer container 55003
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    ports:
+      - 55003:9000
+    volumes:
+      - portainer_data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: always
+     networks:
+      - e5rayan
+
+
+volumes:
+  db:
+  wordpress:
+  glpi:
+  portainer_data:
+  
+network: 
+  e5rayan:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.100.19.0/16
+          gateway: 172.100.19.1
+      
